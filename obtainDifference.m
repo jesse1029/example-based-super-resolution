@@ -8,7 +8,7 @@ for i = 1:r
         gDiff = input1(i,j,2) - input2(i,j,2);
         bDiff = input1(i,j,3) - input2(i,j,3);
         
-        distance = sqrt(rDiff*rDiff + gDiff*gDiff + bDiff*bDiff)
+        distance = sqrt(rDiff*rDiff + gDiff*gDiff + bDiff*bDiff);
         difference(i,j) = distance;
 
     end

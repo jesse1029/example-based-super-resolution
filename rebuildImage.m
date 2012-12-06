@@ -1,5 +1,5 @@
 %function output = rebuildImage(kdTree, key2d, subSampledInput, lowResImage, highResImage, keys, values, lowResPatches, highResPatches, originalInput)
-function [subsampled interpolated superResImage difference originalHiRes] = rebuildImage(kdTree, subSampledInput, values, originalInput, alpha)
+function [subsampled interpolated superResImage differenceInterpolated differenceSuperres originalHiRes] = rebuildImage(kdTree, subSampledInput, values, originalInput, alpha)
 
 
 backImage = im2double(imresize(subSampledInput, 2.0, 'bicubic'));
@@ -78,36 +78,27 @@ output = diff1+backImage+diff2;
 
 superResImage = output;
 
-imwrite(subSampledInput, 'out_subsampled.jpg');
-imwrite(interpolatedSubSampledInput, 'out_interpolated.jpg');
-imwrite(superResImage, 'out_superRes.jpg');
-imwrite(originalInput, 'out_original.jpg');
-imwrite(diff1, 'out_diff1.jpg');
-imwrite(diff2, 'out_diff2.jpg');
-imwrite(backImage, 'out_backimage.jpg');
+exists = exist('output-images', 'dir');
+if (exists == 7) 
+rmdir('output-images');
+end
+mkdir('output-images');
+
+imwrite(subSampledInput, 'output-images/subsampled.jpg');
+imwrite(interpolatedSubSampledInput, 'output-images/interpolated.jpg');
+imwrite(superResImage, 'output-images/superRes.jpg');
+imwrite(originalInput, 'output-images/original.jpg');
 
 subsampled = subSampledInput;
 interpolated = interpolatedSubSampledInput;
 originalHiRes = originalInput;
 
 %Get difference between superResImage and originalHiRes
-[r c d] = size(superResImage);
-difference = zeros(r,c);
-for i = 1:r
-    for j = 1:c
-        rDiff = superResImage(i,j,1) - originalHiRes(i,j,1);
-        gDiff = superResImage(i,j,2) - originalHiRes(i,j,2);
-        bDiff = superResImage(i,j,3) - originalHiRes(i,j,3);
-        
-        distance = sqrt(rDiff*rDiff + gDiff*gDiff + bDiff*bDiff)
-        difference(i,j) = distance;
+differenceInterpolated = obtainDifference(originalInput, interpolatedSubSampledInput);
+differenceSuperres = obtainDifference(originalInput, superResImage);
 
-    end
-end
-
-maxDiff = max(difference(:));
-difference = difference / maxDiff;
-difference = difference * 255;
+imwrite(differenceInterpolated, 'output-images/difference-interpolated.jpg');
+imwrite(differenceSuperres, 'output-images/difference-superres.jpg');
 
 %imshow(im2double(uint8(difference)));
 % asdf = highResImage - diff;

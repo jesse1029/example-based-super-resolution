@@ -1,4 +1,4 @@
-function [subsampled interpolated superResImage difference originaHiRes] = superRes(fileName, trueHighResImageName, alpha, bucketSize)
+function [subsampled interpolated superResImage differenceInterp differenceSuperRes originaHiRes] = superRes(fileName, trueHighResImageName, alpha, bucketSize)
 
 display('Loading training data');
 tic;
@@ -17,7 +17,7 @@ subsampledInput = blurSubsample(doubleHighResImage);
 
 display('Rebuilding image');
 tic;
-[subsampled interpolated superResImage difference originaHiRes] = rebuildImage(kdTree, subsampledInput, values, doubleHighResImage, alpha);
+[subsampled interpolated superResImage differenceInterp differenceSuperRes originaHiRes] = rebuildImage(kdTree, subsampledInput, values, doubleHighResImage, alpha);
 toc;
 display('Done rebuilding image');
 

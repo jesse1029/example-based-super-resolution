@@ -22,7 +22,7 @@ function varargout = superResolution(varargin)
 
 % Edit the above text to modify the response to help superResolution
 
-% Last Modified by GUIDE v2.5 01-Dec-2012 17:17:57
+% Last Modified by GUIDE v2.5 05-Dec-2012 19:55:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,7 +59,9 @@ axes(handles.interpolated);
 axis off;
 axes(handles.superRes);
 axis off;
-axes(handles.difference);
+axes(handles.differenceInterp);
+axis off;
+axes(handles.differenceSuperres);
 axis off;
 axes(handles.originalHiRes);
 axis off;
@@ -105,7 +107,12 @@ existingImageNames = get(handles.trainingImages, 'String')
 global alpha;
 global bucketSize;
 global saveFileName;
-saveFileName = 'trainingData.mat';
+exists = exist('training-data', 'dir');
+if (exists == 7) 
+rmdir('training-data');
+end
+mkdir('training-data');
+saveFileName = 'training-data/trainingData.mat';
 
 buildTrainingSet(existingImageNames', saveFileName, alpha)
 
@@ -121,7 +128,12 @@ global bucketSize;
 global saveFileName;
 global inputImageName;
 
-[subsampled interpolated superResImage difference originalHiRes] = superRes(saveFileName, inputImageName, alpha, bucketSize);
+[subsampled interpolated superResImage differenceInterpolated differenceSuperres originalHiRes] = superRes(saveFileName, inputImageName, alpha, bucketSize);
+
+axes(handles.selectImage);
+cla;
+imshow(im2double(imread(inputImageName)));
+
 axes(handles.subsampled);
 cla;
 imshow(subsampled);
@@ -134,9 +146,13 @@ axes(handles.superRes);
 cla;
 imshow(superResImage);
 
-axes(handles.difference);
+axes(handles.differenceInterp);
 cla;
-imshow(uint8(difference));%hack for now
+imshow(uint8(differenceInterpolated));%hack for now
+
+axes(handles.differenceSuperres);
+cla;
+imshow(uint8(differenceSuperres));%hack for now
 
 axes(handles.originalHiRes);
 cla;
@@ -151,12 +167,12 @@ function selectImageButton_Callback(hObject, eventdata, handles)
 % hObject    handle to selectImageButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[filename pathname] = uigetfile('*.*')
+[filename pathname] = uigetfile('*.*');
 
 global inputImageName;
-inputImageName = filename;
+inputImageName = strcat(pathname, filename);
 
-inputImage = im2double(imread(filename));
+inputImage = im2double(imread(inputImageName));
 
 axes(handles.selectImage);
 cla;
@@ -171,10 +187,10 @@ function addTrainingImage_Callback(hObject, eventdata, handles)
 % hObject    handle to addTrainingImage (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-filename = uigetfile('*.*');
+[filename pathname] = uigetfile('*.*');
 
 existingImageNames = get(handles.trainingImages, 'String');
-existingImageNames{end+1} = filename;
+existingImageNames{end+1} = strcat(pathname, filename);
 set(handles.trainingImages, 'String', existingImageNames);
 
 end
