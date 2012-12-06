@@ -1,13 +1,16 @@
 function buildTrainingSet(inputImageFileNames, saveFileName, alpha)
 
+%c contains number of input files
 [r c] = size(inputImageFileNames);
 
+%training set is a huge set of key-value pairs
 keys = [];
 values = [];
 
+%tic and toc are for time profiling in matlab
 overallTicId = tic;
 for i = 1:c    
-    display(['Generating training set from image:  ' inputImageFileNames{i}]);%'Generating training set from image');%, inputImageFileNames{i});
+    display(['Generating training set from image:  ' inputImageFileNames{i}]);
 
     tic;
     [tKeys tValues] = train(inputImageFileNames{i}, alpha);

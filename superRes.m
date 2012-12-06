@@ -1,4 +1,4 @@
-function [subsampled interpolated superResImage differenceInterp differenceSuperRes originaHiRes] = superRes(fileName, trueHighResImageName, alpha, bucketSize)
+function [subsampled interpolated superResImage differenceInterp differenceSuperRes originaHiRes] = superResify(fileName, trueHighResImageName, alpha, bucketSize)
 
 display('Loading training data');
 tic;
@@ -12,7 +12,11 @@ kdTree = KDTreeSearcher(keys, 'BucketSize', bucketSize);
 toc;
 display('Done building kd tree');
 
+%convert original image to double version
 doubleHighResImage = im2double(imread(trueHighResImageName));
+
+%low frequency and subsampled version of original image to use
+%for the actually super resolution and to compare results
 subsampledInput = blurSubsample(doubleHighResImage);
 
 display('Rebuilding image');

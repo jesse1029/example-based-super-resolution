@@ -1,4 +1,7 @@
-function varargout = superResolution(varargin)
+%This file is the entry function for the GUI represented in the .fig file
+
+
+function varargout = superResolutionGUI(varargin)
 % SUPERRESOLUTION MATLAB code for superResolution.fig
 %      SUPERRESOLUTION, by itself, creates a new SUPERRESOLUTION or raises the existing
 %      singleton*.
@@ -107,10 +110,6 @@ existingImageNames = get(handles.trainingImages, 'String')
 global alpha;
 global bucketSize;
 global saveFileName;
-exists = exist('training-data', 'dir');
-if (exists == 7) 
-rmdir('training-data');
-end
 mkdir('training-data');
 saveFileName = 'training-data/trainingData.mat';
 

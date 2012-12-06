@@ -1,3 +1,5 @@
+%performs concatenation of 49 low res pixels to 9 high res pixels
+%for more info, see top comments in createVectors.m
 function output = vectorize(alpha, lowResPatches, highResPatches, i, j);
 
 lowResPatch = accessPatch(lowResPatches, i,j);  %7x7x3

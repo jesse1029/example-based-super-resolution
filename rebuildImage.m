@@ -1,87 +1,71 @@
 %function output = rebuildImage(kdTree, key2d, subSampledInput, lowResImage, highResImage, keys, values, lowResPatches, highResPatches, originalInput)
 function [subsampled interpolated superResImage differenceInterpolated differenceSuperres originalHiRes] = rebuildImage(kdTree, subSampledInput, values, originalInput, alpha)
 
-
+%recreate the low res image that you will be adding the difference to
 backImage = im2double(imresize(subSampledInput, 2.0, 'bicubic'));
 interpolatedSubSampledInput = backImage;
 [r c d] = size(backImage);
 
+%obtain high frequencies from the low res image
 filterSize = 3;
 blurFilter = ones(filterSize,filterSize) * 1/(filterSize*filterSize);
 highPassFilter = [0 0 0; 0 1 0; 0 0 0] - blurFilter;
 filteredImage = imfilter(backImage, highPassFilter);
 
-diff2 = backImage - filteredImage;
+%diff difference between low res and high passed version of the low res image
+%it is added back to reconstructed image at the end
+diff = backImage - filteredImage;
 backImage = filteredImage;
-%diff2 = backImage - lowResImage; 
 
-
-
-
-diff1 = zeros(r,c,d);
-
-
+%initialize reconstructed image
+reconstructedImage = zeros(r,c,d);
 
 endR = r-6;
 endC = c-6;
 
 %while (i + 6 < r) 
 for i = 1:4:endR
+    %print current percentage done
     percentage = i/endR*100
     for j = 1:4:endC
 
-      %have i and j
-      %get backimage patch
-      patch49 = backImage(i:i+6, j:j+6, :);
-      
-      patch25 = diff1((i+1):(i+5), (j+1):(j+5), :);
+    %get corresponding low res patch
+    patch49 = backImage(i:i+6, j:j+6, :);
+    
+    %obtain current high res patch being built for extracting
+    %9 upper left values
+    patch25 = reconstructedImage((i+1):(i+5), (j+1):(j+5), :);
       
      
+    %concatenate patch so has 58 elements and becomes key
+    patch58 = zeros(58,3);
+    for k = 1:3
+        patch9 = [];
+        patch9 = [patch25(1,:,k) patch25(2:end,1,k)'];
+        patch9 = patch9*alpha;
+        patch58(:,k) = [reshape(patch49(:,:,k), 1, []) patch9];
+    end        
+    patch58 = reshape(patch58, 1, 174);
+    
+    %undo contrast normalize
+    scale = getContrastNormalizeScale(patch58);
+    patch58 = patch58 / scale;
 
-      patch58 = zeros(58,3);
-      for k = 1:3
-          diff9 = [];
-          diff9 = [patch25(1,:,k) patch25(2:end,1,k)'];
-          diff9 = diff9*alpha;
-          patch58(:,k) = [reshape(patch49(:,:,k), 1, []) diff9];
-      end
-      
-      patch58(:,:,1);
-      
-      patch58 = reshape(patch58, 1, 174);
-      
-      scale = getContrastNormalizeScale(patch58);
-      patch58 = patch58 / scale;
+    %obtain the value
+    index = knnsearch(kdTree, patch58);
+    value(:,:,:) = values(index,:,:,:);
 
-      %keyDiff1 = lookup(patch58, keys, values);
-      %keyDiff2 = accessPatch(highResPatches, i+1, j+1);
-      index = knnsearch(kdTree, patch58);
-      keyDiff1(:,:,:) = values(index,:,:,:);
-
-      
-      diff1((i+1):(i+5), (j+1):(j+5), :) = keyDiff1*scale;
+    %add high res patch to the image being reconstructed
+    reconstructedImage((i+1):(i+5), (j+1):(j+5), :) = value*scale;
       
     end
     toc;
 end
 
-output = diff1+backImage+diff2;
-
-% subplot(1, 3, 1)
-% imshow(interpolatedSubSampledInput);
-% 
-% subplot(1, 3, 2)
-% imshow(output);
-% 
-% subplot(1, 3, 3)
-% imshow(originalInput);
+output = reconstructedImage+backImage+diff;
 
 superResImage = output;
 
-exists = exist('output-images', 'dir');
-if (exists == 7) 
-rmdir('output-images');
-end
 mkdir('output-images');
 
 imwrite(subSampledInput, 'output-images/subsampled.jpg');
@@ -100,10 +84,4 @@ differenceSuperres = obtainDifference(originalInput, superResImage);
 imwrite(differenceInterpolated, 'output-images/difference-interpolated.jpg');
 imwrite(differenceSuperres, 'output-images/difference-superres.jpg');
 
-%imshow(im2double(uint8(difference)));
-% asdf = highResImage - diff;
-% sum(asdf(:))
-
-% temp = im2double(originalInput) - output;
-% finalDifference = sum(temp(:))
 end

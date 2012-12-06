@@ -1,3 +1,5 @@
+%obtains the difference between two images, and scales
+%it into a 0 to 255 gray level image
 function difference = obtainDifference(input1, input2)
 
 [r c d] = size(input1);
